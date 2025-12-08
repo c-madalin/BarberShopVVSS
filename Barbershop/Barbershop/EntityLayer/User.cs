@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.EntityLayer
 {
-    internal abstract class User
+    public abstract class User
     {
         #region DB Items
         public int Id { get; set; }

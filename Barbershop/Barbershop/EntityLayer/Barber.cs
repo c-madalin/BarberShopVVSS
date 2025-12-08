@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.EntityLayer
 {
-    internal sealed class Barber: User
+    public sealed class Barber: User
     {
         public string Specialisation { get; set; }
         public decimal Salary { get; set; }

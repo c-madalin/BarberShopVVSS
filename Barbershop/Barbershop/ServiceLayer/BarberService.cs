@@ -1,12 +1,12 @@
 ﻿using Barbershop.DomainLayer;
 using Barbershop.EntityLayer;
-using Barbershop.NetworkingLayer; // Presupun ca ai IEmailVerifier aici
+using Barbershop.NetworkingLayer;
 using System;
 using System.Threading.Tasks;
 
 namespace Barbershop.ServiceLayer
 {
-    public class BarberService : IUserService<Barber> // Implementeaza interfata din Service Layer (vezi mai jos)
+    public class BarberService : IUserService<Barber> 
     {
         private readonly IUserDomain<Barber> _barberDomain;
         private readonly IEmailVerifier _emailVerifier;

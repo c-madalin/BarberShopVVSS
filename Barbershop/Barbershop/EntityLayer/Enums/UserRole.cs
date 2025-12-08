@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.EntityLayer.Enums
 {
-    internal enum UserRole
+    public enum UserRole
     {
         Client,
         Barber,

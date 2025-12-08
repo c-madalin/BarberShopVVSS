@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.NetworkingLayer
 {
-    internal interface IEmailVerifier
+    public interface IEmailVerifier
     {
         Task<bool> IsValidEmailAsync(string email);
     }
