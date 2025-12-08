@@ -10,7 +10,7 @@ namespace Barbershop.IntegrationLayer
     internal sealed class DbContext
     {
         private const string ConnectionString = "Server=localhost;" +
-                                                "Database=BarbershopVVSS;" +
+                                                "Database=Barbershop;" +
                                                 "Trusted_Connection=True;" +
                                                 "TrustServerCertificate=True;";
 

@@ -1,19 +1,19 @@
-﻿using BarbershopVVSS.DomainLayer;
-using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.NetworkingLayer;
+﻿using Barbershop.DomainLayer;
+using Barbershop.EntityLayer;
+using Barbershop.NetworkingLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarbershopVVSS.ServiceLayer
+namespace Barbershop.ServiceLayer
 {
-    internal class BarberService: IService<Barber>
+    internal class BarberService: IUserService<Barber>
     {
-        private readonly IDomain<Barber> _barberDomain;
+        private readonly IUserDomain<Barber> _barberDomain;
         private readonly IEmailVerifier _emailVerifier;
-        public BarberService(IDomain<Barber> barberDomain, IEmailVerifier emailVerifier)
+        public BarberService(IUserDomain<Barber> barberDomain, IEmailVerifier emailVerifier)
         {
             _barberDomain = barberDomain;
             _emailVerifier = emailVerifier;

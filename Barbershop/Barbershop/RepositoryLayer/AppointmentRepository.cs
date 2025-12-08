@@ -1,6 +1,6 @@
-﻿using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.IntegrationLayer;
-using BarbershopVVSS.RepositoryLayer;
+﻿using Barbershop.EntityLayer;
+using Barbershop.IntegrationLayer;
+using Barbershop.RepositoryLayer;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
@@ -8,12 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.IntegrationLayer;
+using Barbershop.EntityLayer;
+using Barbershop.IntegrationLayer;
 
-namespace BarbershopVVSS.RepositoryLayer
+namespace Barbershop.RepositoryLayer
 {
-    public class AppointmentRepository : IRepository<Appointments>
+    public class AppointmentRepository : IUserRepository<Appointments>
     {
         public void Add(Appointments appointment)
         {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarbershopVVSS.EntityLayer
+namespace Barbershop.EntityLayer
 {
     public class Appointments
     {

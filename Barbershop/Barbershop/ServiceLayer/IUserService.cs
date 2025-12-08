@@ -1,13 +1,13 @@
-﻿using BarbershopVVSS.EntityLayer;
+﻿using Barbershop.EntityLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarbershopVVSS.ServiceLayer
+namespace Barbershop.ServiceLayer
 {
-    public interface IService<T> where T : class
+    public interface IUserService<T> where T : class
     {
         public T Login(string email, string password);
     }

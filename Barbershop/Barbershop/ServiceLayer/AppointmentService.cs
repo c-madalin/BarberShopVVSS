@@ -1,12 +1,12 @@
-﻿using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.ServiceLayer;
+﻿using Barbershop.EntityLayer;
+using Barbershop.ServiceLayer;
 
 using System;
 using System.Collections.Generic;
-using BarbershopVVSS.DomainLayer;
-using BarbershopVVSS.EntityLayer;
+using Barbershop.DomainLayer;
+using Barbershop.EntityLayer;
 
-namespace BarbershopVVSS.ServiceLayer
+namespace Barbershop.ServiceLayer
 {
     internal class AppointmentService
     {

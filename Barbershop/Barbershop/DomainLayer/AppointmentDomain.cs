@@ -1,24 +1,24 @@
-﻿using BarbershopVVSS.DomainLayer;
-using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.RepositoryLayer; // <-- Ensure this using directive is present
+﻿using Barbershop.DomainLayer;
+using Barbershop.EntityLayer;
+using Barbershop.RepositoryLayer; 
 
 using System;
 using System.Collections.Generic;
-using BarbershopVVSS.EntityLayer;
-using BarbershopVVSS.RepositoryLayer;
+using Barbershop.EntityLayer;
+using Barbershop.RepositoryLayer;
 
-namespace BarbershopVVSS.DomainLayer
+namespace Barbershop.DomainLayer
 {
     public class AppointmentDomain
     {
         private readonly AppointmentRepository _appointmentRepository;
-        private readonly IRepository<Client> _clientRepository;
-        private readonly IRepository<Barber> _barberRepository;
+        private readonly IUserRepository<Client> _clientRepository;
+        private readonly IUserRepository<Barber> _barberRepository;
 
         public AppointmentDomain(
             AppointmentRepository appointmentRepository,
-            IRepository<Client> clientRepository,
-            IRepository<Barber> barberRepository)
+            IUserRepository<Client> clientRepository,
+            IUserRepository<Barber> barberRepository)
         {
             _appointmentRepository = appointmentRepository ?? throw new ArgumentNullException(nameof(appointmentRepository));
             _clientRepository = clientRepository ?? throw new ArgumentNullException(nameof(clientRepository));
