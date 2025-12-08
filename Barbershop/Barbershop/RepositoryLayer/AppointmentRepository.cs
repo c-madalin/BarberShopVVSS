@@ -1,143 +1,106 @@
 ﻿using Barbershop.EntityLayer;
+using Barbershop.EntityLayer.Enums;
 using Barbershop.IntegrationLayer;
-using Barbershop.RepositoryLayer;
 using Microsoft.Data.SqlClient;
-using System.Data;
-
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
-using Barbershop.EntityLayer;
-using Barbershop.IntegrationLayer;
 
 namespace Barbershop.RepositoryLayer
 {
-    public class AppointmentRepository : IUserRepository<Appointments>
+    public class AppointmentRepository : IAppointmentRepository
     {
-        public void Add(Appointments appointment)
+        public void Add(Appointment appointment)
         {
             using var conn = DbContext.GetConnection();
             using var cmd = new SqlCommand(@"
-INSERT INTO dbo.Appointments (CustomerEmail, BarberEmail, AppointmentDate, ServiceType)
-VALUES (@CustomerEmail, @BarberEmail, @AppointmentDate, @ServiceType);
-SELECT CAST(SCOPE_IDENTITY() AS INT);", conn)
-            {
-                CommandType = CommandType.Text
-            };
+                INSERT INTO dbo.Appointments (CustomerEmail, BarberEmail, AppointmentDate, ServiceType, Status)
+                VALUES (@CustomerEmail, @BarberEmail, @Date, @Service, @Status);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);", conn);
 
-            cmd.Parameters.AddWithValue("@CustomerEmail", appointment.CustomerEmail ?? string.Empty);
-            cmd.Parameters.AddWithValue("@BarberEmail", appointment.BarberEmail ?? string.Empty);
-            cmd.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
-            cmd.Parameters.AddWithValue("@ServiceType", appointment.ServiceType ?? string.Empty);
+            cmd.Parameters.AddWithValue("@CustomerEmail", appointment.CustomerEmail);
+            cmd.Parameters.AddWithValue("@BarberEmail", appointment.BarberEmail);
+            cmd.Parameters.AddWithValue("@Date", appointment.AppointmentDate);
+            cmd.Parameters.AddWithValue("@Service", appointment.ServiceType);
+            cmd.Parameters.AddWithValue("@Status", appointment.Status.ToString());
 
             var result = cmd.ExecuteScalar();
             appointment.AppointmentID = result != null ? Convert.ToInt32(result) : 0;
         }
 
-        // Returns the most recent appointment for the given customer email.
-        public Appointments GetByEmail(string email)
+        public List<Appointment> GetByCustomerEmail(string customerEmail)
         {
-            if (string.IsNullOrWhiteSpace(email)) return null;
-
+            var list = new List<Appointment>();
             using var conn = DbContext.GetConnection();
-            using var cmd = new SqlCommand(@"
-SELECT TOP 1 AppointmentID, CustomerEmail, BarberEmail, AppointmentDate, ServiceType
-FROM dbo.Appointments
-WHERE CustomerEmail = @Email
-ORDER BY AppointmentDate DESC;", conn)
-            {
-                CommandType = CommandType.Text
-            };
 
-            cmd.Parameters.AddWithValue("@Email", email);
+            string sql = @"
+                SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
+                       b.FirstName + ' ' + b.LastName as BarberName
+                FROM dbo.Appointments a
+                JOIN dbo.Users b ON a.BarberEmail = b.Email  -- AICI E CHEIA: Legatura pe Email
+                WHERE a.CustomerEmail = @Email
+                ORDER BY a.AppointmentDate DESC";
 
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return Map(reader);
-            }
-
-            return null;
-        }
-
-        // Additional helpers used by domain/service
-        public List<Appointments> GetByCustomerEmail(string customerEmail)
-        {
-            var list = new List<Appointments>();
-            if (string.IsNullOrWhiteSpace(customerEmail)) return list;
-
-            using var conn = DbContext.GetConnection();
-            using var cmd = new SqlCommand(@"
-SELECT AppointmentID, CustomerEmail, BarberEmail, AppointmentDate, ServiceType
-FROM dbo.Appointments
-WHERE CustomerEmail = @CustomerEmail
-ORDER BY AppointmentDate;", conn)
-            {
-                CommandType = CommandType.Text
-            };
-
-            cmd.Parameters.AddWithValue("@CustomerEmail", customerEmail);
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", customerEmail);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 list.Add(Map(reader));
             }
-
             return list;
         }
 
-        public List<Appointments> GetByBarberEmail(string barberEmail)
+        public List<Appointment> GetByBarberEmail(string barberEmail)
         {
-            var list = new List<Appointments>();
-            if (string.IsNullOrWhiteSpace(barberEmail)) return list;
-
+            var list = new List<Appointment>();
             using var conn = DbContext.GetConnection();
-            using var cmd = new SqlCommand(@"
-SELECT AppointmentID, CustomerEmail, BarberEmail, AppointmentDate, ServiceType
-FROM dbo.Appointments
-WHERE BarberEmail = @BarberEmail
-ORDER BY AppointmentDate;", conn)
-            {
-                CommandType = CommandType.Text
-            };
 
-            cmd.Parameters.AddWithValue("@BarberEmail", barberEmail);
+            string sql = @"
+                SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
+                       c.FirstName + ' ' + c.LastName as ClientName
+                FROM dbo.Appointments a
+                JOIN dbo.Users c ON a.CustomerEmail = c.Email -- Legatura pe Email
+                WHERE a.BarberEmail = @Email
+                ORDER BY a.AppointmentDate DESC";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Email", barberEmail);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 list.Add(Map(reader));
             }
-
             return list;
         }
 
-        public void DeleteById(int appointmentId)
+        public void DeleteById(int id)
         {
-            if (appointmentId <= 0) return;
-
             using var conn = DbContext.GetConnection();
-            using var cmd = new SqlCommand("DELETE FROM dbo.Appointments WHERE AppointmentID = @AppointmentID;", conn)
-            {
-                CommandType = CommandType.Text
-            };
-
-            cmd.Parameters.AddWithValue("@AppointmentID", appointmentId);
+            using var cmd = new SqlCommand("DELETE FROM dbo.Appointments WHERE AppointmentID = @Id", conn);
+            cmd.Parameters.AddWithValue("@Id", id);
             cmd.ExecuteNonQuery();
         }
 
-        private Appointments Map(SqlDataReader reader)
+        private Appointment Map(SqlDataReader reader)
         {
-            return new Appointments
+            var appt = new Appointment
             {
-                AppointmentID = reader["AppointmentID"] != DBNull.Value ? Convert.ToInt32(reader["AppointmentID"]) : 0,
-                CustomerEmail = reader["CustomerEmail"]?.ToString(),
-                BarberEmail = reader["BarberEmail"]?.ToString(),
-                AppointmentDate = reader["AppointmentDate"] != DBNull.Value ? Convert.ToDateTime(reader["AppointmentDate"]) : DateTime.MinValue,
-                ServiceType = reader["ServiceType"]?.ToString()
+                AppointmentID = (int)reader["AppointmentID"],
+                CustomerEmail = reader["CustomerEmail"].ToString(),
+                BarberEmail = reader["BarberEmail"].ToString(),
+                AppointmentDate = (DateTime)reader["AppointmentDate"],
+                ServiceType = reader["ServiceType"].ToString(),
+                Status = Enum.Parse<AppointmentStatus>(reader["Status"].ToString())
             };
+
+            // Incercam sa citim numele doar daca exista in query (pentru ca JOIN-urile difera)
+            try { appt.BarberName = reader["BarberName"].ToString(); } catch { }
+            try { appt.ClientName = reader["ClientName"].ToString(); } catch { }
+
+            return appt;
         }
     }
 }

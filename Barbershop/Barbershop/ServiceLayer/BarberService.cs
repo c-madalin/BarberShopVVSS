@@ -1,18 +1,16 @@
 ﻿using Barbershop.DomainLayer;
 using Barbershop.EntityLayer;
-using Barbershop.NetworkingLayer;
+using Barbershop.NetworkingLayer; // Presupun ca ai IEmailVerifier aici
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Barbershop.ServiceLayer
 {
-    internal class BarberService: IUserService<Barber>
+    public class BarberService : IUserService<Barber> // Implementeaza interfata din Service Layer (vezi mai jos)
     {
         private readonly IUserDomain<Barber> _barberDomain;
         private readonly IEmailVerifier _emailVerifier;
+
         public BarberService(IUserDomain<Barber> barberDomain, IEmailVerifier emailVerifier)
         {
             _barberDomain = barberDomain;
@@ -23,20 +21,21 @@ namespace Barbershop.ServiceLayer
         {
             if (!await _emailVerifier.IsValidEmailAsync(email))
             {
-                throw new Exception("Email does not exist or is invalid.");
+                throw new Exception("Email invalid.");
             }
 
-            var newBarber = new Barber
+            var barber = new Barber
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = email,
                 PhoneNumber = phone,
                 Specialisation = specialisation,
-                Salary = salary
+                Salary = salary,
+                IsActive = true
             };
 
-            _barberDomain.Register(newBarber, password);
+            _barberDomain.Register(barber, password);
         }
 
         public Barber Login(string email, string password)

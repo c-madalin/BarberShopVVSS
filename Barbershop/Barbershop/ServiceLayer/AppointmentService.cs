@@ -1,48 +1,45 @@
-﻿using Barbershop.EntityLayer;
-using Barbershop.ServiceLayer;
-
+﻿using Barbershop.DomainLayer;
+using Barbershop.EntityLayer;
 using System;
 using System.Collections.Generic;
-using Barbershop.DomainLayer;
-using Barbershop.EntityLayer;
 
 namespace Barbershop.ServiceLayer
 {
-    internal class AppointmentService
+    public class AppointmentService 
     {
         private readonly AppointmentDomain _domain;
 
         public AppointmentService(AppointmentDomain domain)
         {
-            _domain = domain ?? throw new ArgumentNullException(nameof(domain));
+            _domain = domain;
         }
 
-        public void CreateAppointment(string customerEmail, string barberEmail, DateTime appointmentDate, string serviceType)
+        public void CreateAppointment(string customerEmail, string barberEmail, DateTime date, string serviceType)
         {
-            var appt = new Appointments
+            var appt = new Appointment
             {
                 CustomerEmail = customerEmail,
                 BarberEmail = barberEmail,
-                AppointmentDate = appointmentDate,
+                AppointmentDate = date,
                 ServiceType = serviceType
             };
 
             _domain.Create(appt);
         }
 
-        public List<Appointments> GetAppointmentsForCustomer(string customerEmail)
+        public List<Appointment> GetHistoryClient(string email)
         {
-            return _domain.GetByCustomerEmail(customerEmail);
+            return _domain.GetByCustomerEmail(email);
         }
 
-        public List<Appointments> GetAppointmentsForBarber(string barberEmail)
+        public List<Appointment> GetHistoryBarber(string email)
         {
-            return _domain.GetByBarberEmail(barberEmail);
+            return _domain.GetByBarberEmail(email);
         }
 
-        public void CancelAppointment(int appointmentId)
+        public void Cancel(int id)
         {
-            _domain.Cancel(appointmentId);
+            _domain.Cancel(id);
         }
     }
 }

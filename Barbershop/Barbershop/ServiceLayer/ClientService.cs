@@ -2,19 +2,16 @@
 using Barbershop.EntityLayer;
 using Barbershop.NetworkingLayer;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Barbershop.ServiceLayer
 {
-    internal class ClientService: IUserService<Client>
+    public class ClientService : IUserService<Client>
     {
         private readonly IUserDomain<Client> _clientDomain;
         private readonly IEmailVerifier _emailVerifier;
 
-        public ClientService(ClientDomain clientDomain, IEmailVerifier emailVerifier)
+        public ClientService(IUserDomain<Client> clientDomain, IEmailVerifier emailVerifier)
         {
             _clientDomain = clientDomain;
             _emailVerifier = emailVerifier;
@@ -24,19 +21,19 @@ namespace Barbershop.ServiceLayer
         {
             if (!await _emailVerifier.IsValidEmailAsync(email))
             {
-                throw new Exception("Email does not exist or is invalid.");
+                throw new Exception("Email invalid.");
             }
 
-
-            var newClient = new Client
+            var client = new Client
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = email,
-                PhoneNumber = phone
+                PhoneNumber = phone,
+                IsActive = true
             };
 
-            _clientDomain.Register(newClient, password);
+            _clientDomain.Register(client, password);
         }
 
         public Client Login(string email, string password)

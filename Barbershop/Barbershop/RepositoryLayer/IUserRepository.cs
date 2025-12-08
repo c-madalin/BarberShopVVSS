@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.RepositoryLayer
 {
-    internal interface IUserRepository<T> where T: class
+    public interface IUserRepository<T> where T: class
     {
         public void Add(T user);
         public T GetByEmail(string email);

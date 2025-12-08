@@ -1,68 +1,53 @@
-﻿using Barbershop.DomainLayer;
-using Barbershop.EntityLayer;
-using Barbershop.RepositoryLayer; 
-
+﻿using Barbershop.EntityLayer;
+using Barbershop.RepositoryLayer;
 using System;
 using System.Collections.Generic;
-using Barbershop.EntityLayer;
-using Barbershop.RepositoryLayer;
 
 namespace Barbershop.DomainLayer
 {
     public class AppointmentDomain
     {
-        private readonly AppointmentRepository _appointmentRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly IUserRepository<Client> _clientRepository;
         private readonly IUserRepository<Barber> _barberRepository;
 
         public AppointmentDomain(
-            AppointmentRepository appointmentRepository,
+            IAppointmentRepository appointmentRepository,
             IUserRepository<Client> clientRepository,
             IUserRepository<Barber> barberRepository)
         {
-            _appointmentRepository = appointmentRepository ?? throw new ArgumentNullException(nameof(appointmentRepository));
-            _clientRepository = clientRepository ?? throw new ArgumentNullException(nameof(clientRepository));
-            _barberRepository = barberRepository ?? throw new ArgumentNullException(nameof(barberRepository));
+            _appointmentRepository = appointmentRepository;
+            _clientRepository = clientRepository;
+            _barberRepository = barberRepository;
         }
 
-        public void Create(Appointments appointment)
+        public void Create(Appointment appointment)
         {
-            if (appointment == null) throw new ArgumentNullException(nameof(appointment));
-            if (string.IsNullOrWhiteSpace(appointment.CustomerEmail)) throw new ArgumentException("CustomerEmail is required.", nameof(appointment.CustomerEmail));
-            if (string.IsNullOrWhiteSpace(appointment.BarberEmail)) throw new ArgumentException("BarberEmail is required.", nameof(appointment.BarberEmail));
-            if (appointment.AppointmentDate <= DateTime.UtcNow.AddMinutes(1)) throw new ArgumentException("Appointment date must be in the future.", nameof(appointment.AppointmentDate));
+            if (appointment.AppointmentDate <= DateTime.Now)
+                throw new Exception("Date must be in the future.");
 
-            // Ensure client and barber exist
             var client = _clientRepository.GetByEmail(appointment.CustomerEmail);
-            if (client == null) throw new InvalidOperationException($"Client not found: {appointment.CustomerEmail}");
+            if (client == null) throw new Exception("Client not found.");
 
-            var barber = _barber_repository_guard(appointment.BarberEmail);
+            var barber = _barberRepository.GetByEmail(appointment.BarberEmail);
+            if (barber == null) throw new Exception("Barber not found.");
 
-            // Persist appointment
             _appointmentRepository.Add(appointment);
         }
 
-        private Barber _barber_repository_guard(string barberEmail)
+        public List<Appointment> GetByCustomerEmail(string email)
         {
-            var barber = _barberRepository.GetByEmail(barberEmail);
-            if (barber == null) throw new InvalidOperationException($"Barber not found: {barberEmail}");
-            return barber;
+            return _appointmentRepository.GetByCustomerEmail(email);
         }
 
-        public List<Appointments> GetByCustomerEmail(string customerEmail)
+        public List<Appointment> GetByBarberEmail(string email)
         {
-            return _appointmentRepository.GetByCustomerEmail(customerEmail ?? string.Empty);
+            return _appointmentRepository.GetByBarberEmail(email);
         }
 
-        public List<Appointments> GetByBarberEmail(string barberEmail)
+        public void Cancel(int id)
         {
-            return _appointmentRepository.GetByBarberEmail(barberEmail ?? string.Empty);
-        }
-
-        public void Cancel(int appointmentId)
-        {
-            if (appointmentId <= 0) throw new ArgumentException("Invalid appointment id.", nameof(appointmentId));
-            _appointmentRepository.DeleteById(appointmentId);
+            _appointmentRepository.DeleteById(id);
         }
     }
 }
