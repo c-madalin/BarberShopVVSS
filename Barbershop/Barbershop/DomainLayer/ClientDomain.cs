@@ -2,6 +2,7 @@
 using Barbershop.NetworkingLayer;
 using Barbershop.RepositoryLayer;
 using Barbershop.Utils;
+using Barbershop.Utils.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +25,8 @@ namespace Barbershop.DomainLayer
         public void Register(Client client, string plainPassword)
         {
             if (_clientRepository.GetByEmail(client.Email) != null)
-            {
-                throw new Exception("A client with this email already exists.");
-            }
+                throw new UserAlreadyExistsException("A client with this email already exists.");
+            
 
             client.PasswordHash = SecurityUtils.Hash(plainPassword);
             client.IsActive = true;
@@ -38,17 +38,21 @@ namespace Barbershop.DomainLayer
         {
             var client = _clientRepository.GetByEmail(email);
 
-            if (client == null || !client.IsActive)
-            {
-                return null;
-            }
+            if (client == null)
+                throw new UserNotFoundException("Client not found.");
+            
+
+            if (!client.IsActive)
+                throw new AuthenticationFailedException("Client account is inactive.");
+            
+
             string inputHash = SecurityUtils.Hash(password);
             if (client.PasswordHash == inputHash)
             {
                 return client;
             }
 
-            return null;
+            throw new AuthenticationFailedException("Invalid password.");
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Barbershop.EntityLayer;
 using Barbershop.IntegrationLayer;
+using Barbershop.Utils.Exceptions;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -48,15 +49,15 @@ namespace Barbershop.RepositoryLayer
                             return new Client
                             {
                                 Id = (int)reader["Id"],
-                                FirstName = reader["FirstName"].ToString(),
-                                LastName = reader["LastName"].ToString(),
-                                Email = reader["Email"].ToString(),
-                                PhoneNumber = reader["PhoneNumber"].ToString(),
-                                PasswordHash = reader["PasswordHash"].ToString(),
+                                FirstName = (string)reader["FirstName"] ??          throw new InvalidInsertFieldException("FirstName cannot be null."),
+                                LastName = (string)reader["LastName"] ??            throw new InvalidInsertFieldException("LastName cannot be null."),
+                                Email = (string)reader["Email"] ??                  throw new InvalidInsertFieldException("Email cannot be null."),
+                                PhoneNumber = (string)reader["PhoneNumber"] ??      throw new InvalidInsertFieldException("PhoneNumber cannot be null."),
+                                PasswordHash = (string)reader["PasswordHash"] ??    throw new InvalidInsertFieldException("PasswordHash cannot be null."),
                                 IsActive = (bool)reader["IsActive"]
                             };
                         }
-                        throw new Exception("PROVIZORY: NO USER RETURNED");
+                        throw new UserNotFoundException("Client not found.");
                     }
                 }
             }

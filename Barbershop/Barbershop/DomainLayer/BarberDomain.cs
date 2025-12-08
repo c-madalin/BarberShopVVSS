@@ -2,15 +2,11 @@
 using Barbershop.NetworkingLayer;
 using Barbershop.RepositoryLayer;
 using Barbershop.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Barbershop.Utils.Exceptions;
 
 namespace Barbershop.DomainLayer
 {
-    internal sealed class BarberDomain: IUserDomain<Barber>
+    internal sealed class BarberDomain : IUserDomain<Barber>
     {
         private readonly IUserRepository<Barber> _barberRepository;
         private readonly IEmailVerifier _emailVerifier;
@@ -25,19 +21,16 @@ namespace Barbershop.DomainLayer
         {
 
             if (_barberRepository.GetByEmail(barber.Email) != null)
-            {
-                throw new Exception("A barber with this email already exists.");
-            }
+              throw new UserAlreadyExistsException("A barber with this email already exists.");
+            
 
-            if (barber.Salary < 0)
-            {
-                throw new Exception("Salary cannot be negative.");
-            }
+            if (barber.Salary < 0) 
+                throw new InvalidSalaryException("Salary cannot be negative.");
+            
 
             if (barber.Email.Count() < 5)
-            {
-                throw new Exception("Email too short!");
-            }
+                throw new InvalidEmailException("Email too short!");
+            
 
             barber.PasswordHash = SecurityUtils.Hash(plainPassword);
             barber.IsActive = true;
@@ -48,10 +41,13 @@ namespace Barbershop.DomainLayer
         {
             var barber = _barberRepository.GetByEmail(email);
 
-            if (barber == null || !barber.IsActive)
-            {
-                return null;
-            }
+            if (barber == null)
+                throw new UserNotFoundException("Barber not found.");
+
+
+            if (!barber.IsActive)
+                throw new AuthenticationFailedException("Barber account is inactive.");
+
 
             string inputHash = SecurityUtils.Hash(password);
             if (barber.PasswordHash == inputHash)
@@ -59,7 +55,7 @@ namespace Barbershop.DomainLayer
                 return barber;
             }
 
-            return null;
+            throw new AuthenticationFailedException("Invalid password.");
         }
     }
 }
