@@ -1,5 +1,6 @@
 ﻿using Barbershop.EntityLayer;
 using Barbershop.RepositoryLayer;
+using Barbershop.Utils.Exceptions;
 using System;
 using System.Collections.Generic;
 
@@ -26,13 +27,18 @@ namespace Barbershop.DomainLayer
             if (appointment.AppointmentDate <= DateTime.Now)
                 throw new Exception("Date must be in the future.");
 
+           if (appointment.AppointmentDate <= DateTime.Now)
+                throw new InvalidAppointmentDateException("Appointment date must be in the future.");
+
             var client = _clientRepository.GetByEmail(appointment.CustomerEmail);
-            if (client == null) throw new Exception("Client not found.");
+            if (client == null)
+                throw new UserNotFoundException($"Client with email {appointment.CustomerEmail} not found.");
 
             var barber = _barberRepository.GetByEmail(appointment.BarberEmail);
-            if (barber == null) throw new Exception("Barber not found.");
+            if (barber == null)
+                throw new UserNotFoundException($"Barber with email {appointment.BarberEmail} not found.");
 
-            _appointmentRepository.Add(appointment);
+           _appointmentRepository.Add(appointment);
         }
 
         public List<Appointment> GetByCustomerEmail(string email)
