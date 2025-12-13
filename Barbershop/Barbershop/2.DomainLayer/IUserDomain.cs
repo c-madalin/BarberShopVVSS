@@ -10,5 +10,7 @@ namespace Barbershop.DomainLayer
     {
         public void Register(T client, string plainPassword);
         public T Login(string email, string password);
+        public void UpdateStatus(string email, bool isActive);
+        public void Delete(string email);
     }
 }

@@ -10,5 +10,7 @@ namespace Barbershop.RepositoryLayer
     {
         public void Add(T user);
         public T GetByEmail(string email);
+        public void UpdateStatus(string email, bool isActive);
+        public void Delete(string email);
     }
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace Barbershop.EntityLayer
 {
-    public class Appointment
+    public sealed class Appointment
     {
         public int AppointmentID { get; set; }
 

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Barbershop.ServiceLayer
 {
-    public class AppointmentService: IAppointmentService
+    public sealed class AppointmentService: IAppointmentService
     {
         private readonly IAppointmentDomain _domain;
 

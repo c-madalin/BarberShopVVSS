@@ -33,7 +33,6 @@ namespace Barbershop.DomainLayer
 
             _clientRepository.Add(client);
         }
-
         public Client Login(string email, string password)
         {
             var client = _clientRepository.GetByEmail(email);
@@ -54,6 +53,27 @@ namespace Barbershop.DomainLayer
 
             throw new AuthenticationFailedException("Invalid password.");
         }
+        public void UpdateStatus(string email, bool isActive)
+        {
+            var client = _clientRepository.GetByEmail(email);
+            if (client == null)
+            {
+                throw new Exception("Client not found.");
+            }
+
+          _clientRepository.UpdateStatus(client.Email, isActive);
+        }
+        public void Delete(string email)
+        {
+            var client = _clientRepository.GetByEmail(email);
+            if (client == null)
+            {
+                throw new Exception("Client not found.");
+            }
+
+           _clientRepository.Delete(client.Email);
+        }
     }
+
 }
 

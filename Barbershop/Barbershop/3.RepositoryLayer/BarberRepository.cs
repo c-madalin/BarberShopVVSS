@@ -65,5 +65,33 @@ namespace Barbershop.RepositoryLayer
                 }
             }
         }
+        public void UpdateStatus(string email, bool isActive)
+        {
+            using (var conn = DbContext.GetConnection())
+            {
+                using (var cmd = new SqlCommand("sp_Barber_SetStatus", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Email", email);
+                    cmd.Parameters.AddWithValue("@IsActive", isActive);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public void Delete(string email)
+        {
+            using (var conn = DbContext.GetConnection())
+            {
+                using (var cmd = new SqlCommand("sp_Barber_Delete", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Email", email);
+
+                    conn.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

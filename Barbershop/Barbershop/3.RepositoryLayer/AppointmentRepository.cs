@@ -8,7 +8,7 @@ using System.Data;
 
 namespace Barbershop.RepositoryLayer
 {
-    public class AppointmentRepository : IAppointmentRepository
+    public sealed class AppointmentRepository : IAppointmentRepository
     {
         public void Add(Appointment appointment)
         {
