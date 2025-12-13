@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class AppointmentNotFoundException : Exception
+    public class AppointmentNotFoundException : Exception
     {
         public AppointmentNotFoundException(string message) : base(message)
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils
 {
-    internal static class SecurityUtils
+    public static class SecurityUtils
     {
         public static string Hash(string input)
         {

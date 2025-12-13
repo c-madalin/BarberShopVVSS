@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class InvalidInsertFieldException: Exception
+    public class InvalidInsertFieldException: Exception
     {
         public InvalidInsertFieldException(string message) : base(message)
         {

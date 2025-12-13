@@ -6,7 +6,7 @@ using Barbershop.Utils.Exceptions;
 
 namespace Barbershop.DomainLayer
 {
-    internal sealed class BarberDomain : IUserDomain<Barber>
+    public sealed class BarberDomain : IUserDomain<Barber>
     {
         private readonly IUserRepository<Barber> _barberRepository;
         private readonly IEmailVerifier _emailVerifier;

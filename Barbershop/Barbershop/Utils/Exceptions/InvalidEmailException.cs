@@ -2,7 +2,7 @@ using System;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class InvalidEmailException : Exception
+    public class InvalidEmailException : Exception
     {
         public InvalidEmailException(string message) : base(message)
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class InvalidSalaryException : Exception
+    public class InvalidSalaryException : Exception
     {
         public InvalidSalaryException(string message) : base(message)
         {

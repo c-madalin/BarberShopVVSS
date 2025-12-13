@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class BarberUnavailableException : Exception
+    public class BarberUnavailableException : Exception
     {
         public BarberUnavailableException(string message) : base(message)
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class UserNotFoundException : Exception
+    public class UserNotFoundException : Exception
     {
         public UserNotFoundException(string message) : base(message)
         {

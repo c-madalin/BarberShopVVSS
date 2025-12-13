@@ -2,7 +2,7 @@ using System;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class AuthenticationFailedException : Exception
+    public class AuthenticationFailedException : Exception
     {
         public AuthenticationFailedException(string message) : base(message)
         {

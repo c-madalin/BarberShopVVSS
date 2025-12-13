@@ -66,7 +66,7 @@ namespace Barbershop.RepositoryLayer
         {
             using (var conn = DbContext.GetConnection())
             {
-                using (var cmd = new SqlCommand("sp_Client_SetStatus", conn))
+                using (var cmd = new SqlCommand("sp_UpdateClientStatus", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Email", email);
@@ -80,7 +80,7 @@ namespace Barbershop.RepositoryLayer
         {
             using (var conn = DbContext.GetConnection())
             {
-                using (var cmd = new SqlCommand("sp_Client_Delete", conn))
+                using (var cmd = new SqlCommand("sp_DeleteClient", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Email", email);

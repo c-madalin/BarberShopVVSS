@@ -7,7 +7,7 @@ using System;
 
 namespace Barbershop.Utils.Exceptions
 {
-    internal class InvalidAppointmentDateException : Exception
+    public class InvalidAppointmentDateException : Exception
     {
         public InvalidAppointmentDateException(string message) : base(message)
         {

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.DomainLayer
 {
-    internal sealed class ClientDomain: IUserDomain<Client>
+    public sealed class ClientDomain: IUserDomain<Client>
     {
         private readonly IUserRepository<Client> _clientRepository;
         private readonly IEmailVerifier _emailVerifier;
