@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Barbershop.DomainLayer
 {
-    public class AppointmentDomain
+    public class AppointmentDomain: IAppointmentDomain
     {
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IUserRepository<Client> _clientRepository;

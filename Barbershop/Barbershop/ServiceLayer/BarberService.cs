@@ -17,7 +17,13 @@ namespace Barbershop.ServiceLayer
             _emailVerifier = emailVerifier;
         }
 
-        public async Task NewRegister(string firstName, string lastName, string email, string phone, string password, string specialisation, decimal salary)
+        public async Task NewRegister(string firstName,
+            string lastName,
+            string email,
+            string phone,
+            string password,
+            string specialisation,
+            decimal salary)
         {
             if (!await _emailVerifier.IsValidEmailAsync(email))
             {

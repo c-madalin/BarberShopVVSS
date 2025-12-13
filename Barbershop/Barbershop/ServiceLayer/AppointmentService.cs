@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Barbershop.ServiceLayer
 {
-    public class AppointmentService 
+    public class AppointmentService: IAppointmentService
     {
-        private readonly AppointmentDomain _domain;
+        private readonly IAppointmentDomain _domain;
 
-        public AppointmentService(AppointmentDomain domain)
+        public AppointmentService(IAppointmentDomain domain)
         {
             _domain = domain;
         }
