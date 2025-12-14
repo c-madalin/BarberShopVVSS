@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Barbershop.EntityLayer;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Barbershop._3.RepositoryLayer.Interfaces
+namespace Barbershop.RepositoryLayer
 {
-    internal interface IReviewRepository
+    public interface IReviewRepository
     {
+        void Add(Review review);
+        List<Review> GetByBarberEmail(string email);
+        Review GetById(int id);
+        bool HasReviewForAppointment(int appointmentId);
     }
 }
