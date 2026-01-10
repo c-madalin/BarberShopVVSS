@@ -2,10 +2,11 @@
 using Barbershop.EntityLayer;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.ServiceLayer
 {
-    public sealed class AppointmentService: IAppointmentService
+    public sealed class AppointmentService : IAppointmentService
     {
         private readonly IAppointmentDomain _domain;
 
@@ -14,7 +15,7 @@ namespace Barbershop.ServiceLayer
             _domain = domain;
         }
 
-        public void CreateAppointment(string customerEmail, string barberEmail, DateTime date, string serviceType)
+        public async Task CreateAppointmentAsync(string customerEmail, string barberEmail, DateTime date, string serviceType)
         {
             var appt = new Appointment
             {
@@ -24,22 +25,22 @@ namespace Barbershop.ServiceLayer
                 ServiceType = serviceType
             };
 
-            _domain.Create(appt);
+            await _domain.CreateAsync(appt);
         }
 
-        public List<Appointment> GetHistoryClient(string email)
+        public async Task<List<Appointment>> GetHistoryClientAsync(string email)
         {
-            return _domain.GetByCustomerEmail(email);
+            return await _domain.GetByCustomerEmailAsync(email);
         }
 
-        public List<Appointment> GetHistoryBarber(string email)
+        public async Task<List<Appointment>> GetHistoryBarberAsync(string email)
         {
-            return _domain.GetByBarberEmail(email);
+            return await _domain.GetByBarberEmailAsync(email);
         }
 
-        public void Cancel(int id)
+        public async Task CancelAsync(int id)
         {
-            _domain.Cancel(id);
+            await _domain.CancelAsync(id);
         }
     }
 }

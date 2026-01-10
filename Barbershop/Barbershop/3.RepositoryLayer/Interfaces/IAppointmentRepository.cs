@@ -1,13 +1,14 @@
 ﻿using Barbershop.EntityLayer;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.RepositoryLayer
 {
     public interface IAppointmentRepository
     {
-        void Add(Appointment appointment);
-        List<Appointment> GetByCustomerEmail(string email);
-        List<Appointment> GetByBarberEmail(string email);
-        void DeleteById(int id);
+        Task AddAsync(Appointment appointment);
+        Task<List<Appointment>> GetByCustomerEmailAsync(string email);
+        Task<List<Appointment>> GetByBarberEmailAsync(string email);
+        Task DeleteByIdAsync(int id);
     }
 }
