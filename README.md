@@ -3,6 +3,7 @@
 ## Autori
 - Cazan Cristian Madalin
 - Caliman Vladut
+- Balca Eduard Andrei
 
 ## Descriere
 Acest proiect reprezintă o aplicație de tip Barbershop, realizată în cadrul disciplinei Verificarea si  Validarea Sistemelor Software. Aplicația gestionează programările, serviciile și informațiile despre clienți. 
