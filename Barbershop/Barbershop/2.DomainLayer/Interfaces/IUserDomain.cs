@@ -8,9 +8,9 @@ namespace Barbershop.DomainLayer
 {
     public interface IUserDomain<T> where T : class
     {
-        public void Register(T client, string plainPassword);
-        public T Login(string email, string password);
-        public void UpdateStatus(string email, bool isActive);
-        public void Delete(string email);
+        public Task RegisterAsync(T client, string plainPassword);
+        public Task<T> LoginAsync(string email, string password);
+        public Task UpdateStatusAsync(string email, bool isActive);
+        public Task DeleteAsync(string email);
     }
 }

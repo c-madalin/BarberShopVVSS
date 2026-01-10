@@ -9,8 +9,8 @@ namespace Barbershop.ServiceLayer
 {
     public interface IUserService<T> where T : class
     {
-        public Task<T> Login(string email, string password);
-        public void Delete(string email);
-        public void UpdateStatus(string email);
+        public Task<T> LoginAsync(string email, string password);
+        public Task DeleteAsync(string email);
+        public Task UpdateStatusAsync(string email);
     }
 }

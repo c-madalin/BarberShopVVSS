@@ -1,6 +1,7 @@
 ﻿using Barbershop.EntityLayer;
 using Barbershop.IntegrationLayer;
 using Barbershop.Utils.Exceptions;
+using Barbershop.Utils.Logging;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -13,80 +14,119 @@ namespace Barbershop.RepositoryLayer
 {
     internal sealed class ClientRepository: IUserRepository<Client>
     {
-        public void Add(Client client)
+        public async Task AddAsync(Client client)
         {
-            using (var conn = DbContext.GetConnection())
+            try
             {
-                using (var cmd = new SqlCommand("sp_InsertClient", conn))
+                using (var conn = DbContext.CreateConnection())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.AddWithValue("@FirstName", client.FirstName);
-                    cmd.Parameters.AddWithValue("@LastName", client.LastName);
-                    cmd.Parameters.AddWithValue("@Email", client.Email);
-                    cmd.Parameters.AddWithValue("@PhoneNumber", client.PhoneNumber);
-                    cmd.Parameters.AddWithValue("@PasswordHash", client.PasswordHash);
-                    cmd.Parameters.AddWithValue("@IsActive", client.IsActive);
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-        public Client GetByEmail(string email)
-        {
-            using (var conn = DbContext.GetConnection())
-            {
-                using (var cmd = new SqlCommand("sp_GetClientByEmail", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    cmd.Parameters.AddWithValue("@Email", email);
-
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new SqlCommand("sp_InsertClient", conn))
                     {
-                        if (reader.Read())
-                        {
-                            return new Client
-                            {
-                                Id = (int)reader["Id"],
-                                FirstName = (string)reader["FirstName"] ??          throw new InvalidInsertFieldException("FirstName cannot be null."),
-                                LastName = (string)reader["LastName"] ??            throw new InvalidInsertFieldException("LastName cannot be null."),
-                                Email = (string)reader["Email"] ??                  throw new InvalidInsertFieldException("Email cannot be null."),
-                                PhoneNumber = (string)reader["PhoneNumber"] ??      throw new InvalidInsertFieldException("PhoneNumber cannot be null."),
-                                PasswordHash = (string)reader["PasswordHash"] ??    throw new InvalidInsertFieldException("PasswordHash cannot be null."),
-                                IsActive = (bool)reader["IsActive"]
-                            };
-                        }
-                        throw new UserNotFoundException("Client not found.");
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@FirstName", client.FirstName);
+                        cmd.Parameters.AddWithValue("@LastName", client.LastName);
+                        cmd.Parameters.AddWithValue("@Email", client.Email);
+                        cmd.Parameters.AddWithValue("@PhoneNumber", client.PhoneNumber);
+                        cmd.Parameters.AddWithValue("@PasswordHash", client.PasswordHash);
+                        cmd.Parameters.AddWithValue("@IsActive", client.IsActive);
+
+                        await conn.OpenAsync();
+                        await cmd.ExecuteNonQueryAsync();
                     }
                 }
             }
-        }
-        public void UpdateStatus(string email, bool isActive)
-        {
-            using (var conn = DbContext.GetConnection())
+            catch (SqlException ex)
             {
-                using (var cmd = new SqlCommand("sp_UpdateClientStatus", conn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Email", email);
-                    cmd.Parameters.AddWithValue("@IsActive", isActive);
-
-                    cmd.ExecuteNonQuery();
-                }
+                AppLogger.Error($"Database error adding Client {client.Email}: {ex.Message}");
+                throw;
             }
         }
-        public void Delete(string email)
+        public async Task<Client?> GetByEmailAsync(string email)
         {
-            using (var conn = DbContext.GetConnection())
+            try
             {
-                using (var cmd = new SqlCommand("sp_DeleteClient", conn))
+                using (var conn = DbContext.CreateConnection())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@Email", email);
+                    using (var cmd = new SqlCommand("sp_GetClientByEmail", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                    cmd.ExecuteNonQuery();
+                        cmd.Parameters.AddWithValue("@Email", email);
+
+                        await conn.OpenAsync();
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                return new Client
+                                {
+                                    Id = (int)reader["Id"],
+                                    FirstName = (string)reader["FirstName"] ?? throw new InvalidInsertFieldException("FirstName cannot be null."),
+                                    LastName = (string)reader["LastName"] ?? throw new InvalidInsertFieldException("LastName cannot be null."),
+                                    Email = (string)reader["Email"] ?? throw new InvalidInsertFieldException("Email cannot be null."),
+                                    PhoneNumber = (string)reader["PhoneNumber"] ?? throw new InvalidInsertFieldException("PhoneNumber cannot be null."),
+                                    PasswordHash = (string)reader["PasswordHash"] ?? throw new InvalidInsertFieldException("PasswordHash cannot be null."),
+                                    IsActive = (bool)reader["IsActive"]
+                                };
+                            }
+                            return null;
+                        }
+                    }
                 }
+            }
+            catch (SqlException ex)
+            {
+                AppLogger.Error($"Database error fetching Client {email}: {ex.Message}");
+                throw;
+            }
+        }
+        public async Task UpdateStatusAsync(string email, bool isActive)
+        {
+            try
+            {
+                using (var conn = DbContext.CreateConnection())
+                {
+                    using (var cmd = new SqlCommand("sp_UpdateClientStatus", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@IsActive", isActive);
+
+                        await conn.OpenAsync();
+                        await cmd.ExecuteReaderAsync();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                AppLogger.Error($"Database error updating status for Client {email}: {ex.Message}");
+                throw;
+            }
+        }
+        public async Task DeleteAsync(string email)
+        {
+            try
+            {
+                using (var conn = DbContext.CreateConnection())
+                {
+                    using (var cmd = new SqlCommand("sp_DeleteClient", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@Email", email);
+
+                        await conn.OpenAsync();
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                AppLogger.Error($"Database error deleting Client {email}: {ex.Message}");
+                throw;
             }
         }
     }

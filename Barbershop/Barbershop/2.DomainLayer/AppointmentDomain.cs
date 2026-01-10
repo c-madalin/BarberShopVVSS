@@ -30,11 +30,11 @@ namespace Barbershop.DomainLayer
            if (appointment.AppointmentDate <= DateTime.Now)
                 throw new InvalidAppointmentDateException("Appointment date must be in the future.");
 
-            var client = _clientRepository.GetByEmail(appointment.CustomerEmail);
+            var client = _clientRepository.GetByEmailAsync(appointment.CustomerEmail);
             if (client == null)
                 throw new UserNotFoundException($"Client with email {appointment.CustomerEmail} not found.");
 
-            var barber = _barberRepository.GetByEmail(appointment.BarberEmail);
+            var barber = _barberRepository.GetByEmailAsync(appointment.BarberEmail);
             if (barber == null)
                 throw new UserNotFoundException($"Barber with email {appointment.BarberEmail} not found.");
 

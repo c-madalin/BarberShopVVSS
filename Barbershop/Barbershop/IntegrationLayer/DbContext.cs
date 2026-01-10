@@ -14,6 +14,11 @@ namespace Barbershop.IntegrationLayer
                                                 "Trusted_Connection=True;" +
                                                 "TrustServerCertificate=True;";
 
+        public static SqlConnection CreateConnection()
+        {
+            return new SqlConnection(ConnectionString);
+        }
+
         public static SqlConnection GetConnection()
         {
             var connection = new SqlConnection(ConnectionString);

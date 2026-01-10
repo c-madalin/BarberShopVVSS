@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Logging.Enum
 {
-    internal enum LogLevel
+    public enum LogLevel
     {
         Info,
         Warning,

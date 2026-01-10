@@ -3,77 +3,84 @@ using Barbershop.NetworkingLayer;
 using Barbershop.RepositoryLayer;
 using Barbershop.Utils;
 using Barbershop.Utils.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Barbershop.Utils.Logging;
 using System.Threading.Tasks;
 
 namespace Barbershop.DomainLayer
 {
-    public sealed class ClientDomain: IUserDomain<Client>
+    public sealed class ClientDomain : IUserDomain<Client>
     {
         private readonly IUserRepository<Client> _clientRepository;
-        private readonly IEmailVerifier _emailVerifier;
-
-        public ClientDomain(IUserRepository<Client> clientRepository, IEmailVerifier emailVerifier)
+        public ClientDomain(IUserRepository<Client> clientRepository)
         {
             _clientRepository = clientRepository;
-            _emailVerifier = emailVerifier;
         }
 
-        public void Register(Client client, string plainPassword)
+        public async Task RegisterAsync(Client client, string plainPassword)
         {
-            if (_clientRepository.GetByEmail(client.Email) != null)
+            if (await _clientRepository.GetByEmailAsync(client.Email) != null)
+            {
+                AppLogger.Warn($"Domain validation failed: Client {client.Email} already exists.");
                 throw new UserAlreadyExistsException("A client with this email already exists.");
-            
+            }
 
             client.PasswordHash = SecurityUtils.Hash(plainPassword);
             client.IsActive = true;
 
-            _clientRepository.Add(client);
+            await _clientRepository.AddAsync(client);
+            AppLogger.Info($"Client domain logic complete. User persisted: {client.Email}");
         }
-        public Client Login(string email, string password)
+
+        public async Task<Client> LoginAsync(string email, string password)
         {
-            var client = _clientRepository.GetByEmail(email);
+            var client = await _clientRepository.GetByEmailAsync(email);
 
             if (client == null)
+            {
+                AppLogger.Warn($"Login failed (Domain): Client not found - {email}");
                 throw new UserNotFoundException("Client not found.");
-            
+            }
 
             if (!client.IsActive)
+            {
+                AppLogger.Warn($"Login blocked (Domain): Inactive account - {email}");
                 throw new AuthenticationFailedException("Client account is inactive.");
-            
+            }
 
             string inputHash = SecurityUtils.Hash(password);
-            if (client.PasswordHash == inputHash)
+            if (client.PasswordHash != inputHash)
             {
-                return client;
+                AppLogger.Warn($"Login failed (Domain): Invalid password hash for {email}");
+                throw new AuthenticationFailedException("Invalid password.");
             }
 
-            throw new AuthenticationFailedException("Invalid password.");
+            return client;
         }
-        public void UpdateStatus(string email, bool isActive)
+
+        public async Task UpdateStatusAsync(string email, bool isActive)
         {
-            var client = _clientRepository.GetByEmail(email);
+            var client = await _clientRepository.GetByEmailAsync(email);
             if (client == null)
             {
-                throw new Exception("Client not found.");
+                AppLogger.Warn($"Update Status failed: Client {email} not found.");
+                throw new UserNotFoundException("Client not found.");
             }
 
-          _clientRepository.UpdateStatus(client.Email, isActive);
+            await _clientRepository.UpdateStatusAsync(email, isActive);
+            AppLogger.Info($"Client status changed: {email} -> {(isActive ? "Active" : "Inactive")}");
         }
-        public void Delete(string email)
+
+        public async Task DeleteAsync(string email)
         {
-            var client = _clientRepository.GetByEmail(email);
+            var client = await _clientRepository.GetByEmailAsync(email);
             if (client == null)
             {
-                throw new Exception("Client not found.");
+                AppLogger.Warn($"Delete failed: Client {email} not found.");
+                throw new UserNotFoundException("Client not found.");
             }
 
-           _clientRepository.Delete(client.Email);
+            await _clientRepository.DeleteAsync(email);
+            AppLogger.Info($"Client deleted (Domain): {email}");
         }
     }
-
 }
-

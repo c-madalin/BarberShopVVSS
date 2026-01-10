@@ -8,9 +8,9 @@ namespace Barbershop.RepositoryLayer
 {
     public interface IUserRepository<T> where T: class
     {
-        public void Add(T user);
-        public T GetByEmail(string email);
-        public void UpdateStatus(string email, bool isActive);
-        public void Delete(string email);
+        public Task AddAsync(T user);
+        public Task<T?> GetByEmailAsync(string email);
+        public Task UpdateStatusAsync(string email, bool isActive); // SOFT DELETE
+        public Task DeleteAsync(string email); // HARD DELETE
     }
 }

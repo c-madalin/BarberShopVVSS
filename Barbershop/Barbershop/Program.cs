@@ -1,12 +1,20 @@
-﻿using System;
+﻿using Barbershop._1.ServiceLayer.DTOs;
+using Barbershop.DomainLayer;
+using Barbershop.NetworkingLayer;
+using Barbershop.RepositoryLayer;
+using Barbershop.ServiceLayer;
+using Barbershop.Utils.Logging;
+using Barbershop.Utils.Logging.Enum;
+using Barbershop.Utils.Logging.Interface;
+using System;
 
 namespace Brabershop
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            System.Console.WriteLine("Welcome to the Barbershop!");
+            Console.WriteLine("Hello, Panaite.");
         }
     }
 }
