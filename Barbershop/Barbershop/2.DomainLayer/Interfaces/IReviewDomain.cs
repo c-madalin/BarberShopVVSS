@@ -1,11 +1,12 @@
 ﻿using Barbershop.EntityLayer;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.DomainLayer
 {
     public interface IReviewDomain
     {
-        void AddReview(Review review);
-        List<Review> GetReviewsByBarber(string barberEmail);
+        Task AddReviewAsync(Review review);
+        Task<List<Review>> GetReviewsByBarberAsync(string barberEmail);
     }
 }

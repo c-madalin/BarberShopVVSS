@@ -3,12 +3,13 @@ using Barbershop.IntegrationLayer;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.RepositoryLayer
 {
     public sealed class ReviewRepository : IReviewRepository
     {
-        public void Add(Review review)
+        public async Task AddAsync(Review review)
         {
             using var conn = DbContext.GetConnection();
             using var cmd = new SqlCommand(@"
@@ -19,18 +20,17 @@ namespace Barbershop.RepositoryLayer
             cmd.Parameters.AddWithValue("@ClientEmail", review.ClientEmail);
             cmd.Parameters.AddWithValue("@BarberEmail", review.BarberEmail);
             cmd.Parameters.AddWithValue("@Rating", review.Rating);
-            cmd.Parameters.AddWithValue("@Comment", review.Comment ?? (object)DBNull.Value); // Handle null comments
+            cmd.Parameters.AddWithValue("@Comment", review.Comment ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@DatePosted", review.DatePosted);
 
-            cmd.ExecuteNonQuery();
+            await cmd.ExecuteNonQueryAsync();
         }
 
-        public List<Review> GetByBarberEmail(string barberEmail)
+        public async Task<List<Review>> GetByBarberEmailAsync(string barberEmail)
         {
             var list = new List<Review>();
             using var conn = DbContext.GetConnection();
 
-            // Putem aduce recenziile sortate descrescator dupa data (cele mai noi primele)
             string sql = @"
                 SELECT ReviewId, AppointmentId, ClientEmail, BarberEmail, Rating, Comment, DatePosted
                 FROM dbo.Reviews
@@ -40,41 +40,22 @@ namespace Barbershop.RepositoryLayer
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", barberEmail);
 
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
                 list.Add(Map(reader));
             }
             return list;
         }
 
-        public Review GetById(int id)
-        {
-            using var conn = DbContext.GetConnection();
-            using var cmd = new SqlCommand(@"
-                SELECT ReviewId, AppointmentId, ClientEmail, BarberEmail, Rating, Comment, DatePosted
-                FROM dbo.Reviews
-                WHERE ReviewId = @Id", conn);
-
-            cmd.Parameters.AddWithValue("@Id", id);
-
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return Map(reader);
-            }
-            return null;
-        }
-
-        public bool HasReviewForAppointment(int appointmentId)
+        public async Task<bool> HasReviewForAppointmentAsync(int appointmentId)
         {
             using var conn = DbContext.GetConnection();
             using var cmd = new SqlCommand("SELECT COUNT(1) FROM dbo.Reviews WHERE AppointmentId = @AppId", conn);
-
             cmd.Parameters.AddWithValue("@AppId", appointmentId);
 
-            var count = (int)cmd.ExecuteScalar();
-            return count > 0;
+            var count = await cmd.ExecuteScalarAsync();
+            return (int)count > 0;
         }
 
         private Review Map(SqlDataReader reader)

@@ -1,13 +1,13 @@
 ﻿using Barbershop.EntityLayer;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.RepositoryLayer
 {
     public interface IReviewRepository
     {
-        void Add(Review review);
-        List<Review> GetByBarberEmail(string email);
-        Review GetById(int id);
-        bool HasReviewForAppointment(int appointmentId);
+        Task AddAsync(Review review);
+        Task<List<Review>> GetByBarberEmailAsync(string email);
+        Task<bool> HasReviewForAppointmentAsync(int appointmentId);
     }
 }

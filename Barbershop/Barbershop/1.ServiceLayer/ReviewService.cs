@@ -2,6 +2,7 @@
 using Barbershop.EntityLayer;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Barbershop.ServiceLayer
 {
@@ -14,19 +15,11 @@ namespace Barbershop.ServiceLayer
             _reviewDomain = reviewDomain;
         }
 
-        public void AddReview(int appointmentId, string clientEmail, string barberEmail, int rating, string comment)
+        public async Task AddReviewAsync(int appointmentId, string clientEmail, string barberEmail, int rating, string comment)
         {
-            if (appointmentId <= 0)
-                throw new ArgumentException("Invalid Appointment ID.", nameof(appointmentId));
-
-            if (string.IsNullOrWhiteSpace(clientEmail))
-                throw new ArgumentException("Client email is required.", nameof(clientEmail));
-
-            if (string.IsNullOrWhiteSpace(barberEmail))
-                throw new ArgumentException("Barber email is required.", nameof(barberEmail));
-
-            if (rating < 1 || rating > 5)
-                throw new ArgumentOutOfRangeException(nameof(rating), "Rating must be between 1 and 5.");
+            if (appointmentId <= 0) throw new ArgumentException("Invalid Appointment ID.");
+            if (string.IsNullOrWhiteSpace(clientEmail)) throw new ArgumentException("Client email required.");
+            if (string.IsNullOrWhiteSpace(barberEmail)) throw new ArgumentException("Barber email required.");
 
             var review = new Review
             {
@@ -34,19 +27,16 @@ namespace Barbershop.ServiceLayer
                 ClientEmail = clientEmail,
                 BarberEmail = barberEmail,
                 Rating = rating,
-                Comment = comment?.Trim(), 
+                Comment = comment?.Trim(),
                 DatePosted = DateTime.Now
             };
 
-            _reviewDomain.AddReview(review);
+            await _reviewDomain.AddReviewAsync(review);
         }
 
-        public List<Review> GetReviewsForBarber(string barberEmail)
+        public async Task<List<Review>> GetReviewsForBarberAsync(string barberEmail)
         {
-            if (string.IsNullOrWhiteSpace(barberEmail))
-                throw new ArgumentException("Barber email is required.", nameof(barberEmail));
-
-            return _reviewDomain.GetReviewsByBarber(barberEmail);
+            return await _reviewDomain.GetReviewsByBarberAsync(barberEmail);
         }
     }
 }
