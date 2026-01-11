@@ -14,9 +14,12 @@ namespace Barbershop.EntityLayer.Enums
     }
     public enum AppointmentStatus
     {
-        Pending,   
-        Confirmed, 
-        Completed, 
-        Canceled   
+        Pending,
+        Confirmed,
+        Completed,
+        Canceled
     }
 }
+
+
+
