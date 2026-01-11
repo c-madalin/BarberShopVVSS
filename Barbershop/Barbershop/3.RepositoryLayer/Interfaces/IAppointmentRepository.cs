@@ -10,5 +10,8 @@ namespace Barbershop.RepositoryLayer
         Task<List<Appointment>> GetByCustomerEmailAsync(string email);
         Task<List<Appointment>> GetByBarberEmailAsync(string email);
         Task DeleteByIdAsync(int id);
+
+        Task<Appointment?> GetByIdAsync(int id);
+
     }
 }

@@ -15,7 +15,6 @@ namespace Barbershop.RepositoryLayer
         {
             using var conn = DbContext.CreateConnection();
 
-
             using var cmd = new SqlCommand(@"
                 INSERT INTO dbo.Appointments (CustomerEmail, BarberEmail, AppointmentDate, ServiceType, Status)
                 VALUES (@CustomerEmail, @BarberEmail, @Date, @Service, @Status);
@@ -27,6 +26,7 @@ namespace Barbershop.RepositoryLayer
             cmd.Parameters.AddWithValue("@Service", appointment.ServiceType);
             cmd.Parameters.AddWithValue("@Status", appointment.Status.ToString());
 
+            await conn.OpenAsync();
             var result = await cmd.ExecuteScalarAsync();
             appointment.AppointmentID = result != null ? Convert.ToInt32(result) : 0;
         }
@@ -48,6 +48,7 @@ namespace Barbershop.RepositoryLayer
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", customerEmail);
 
+            await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
@@ -73,6 +74,7 @@ namespace Barbershop.RepositoryLayer
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Email", barberEmail);
 
+            await conn.OpenAsync();
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
@@ -83,12 +85,29 @@ namespace Barbershop.RepositoryLayer
 
         public async Task DeleteByIdAsync(int id)
         {
-             
             using var conn = DbContext.CreateConnection();
 
             using var cmd = new SqlCommand("DELETE FROM dbo.Appointments WHERE AppointmentID = @Id", conn);
             cmd.Parameters.AddWithValue("@Id", id);
+
+            await conn.OpenAsync();
             await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<Appointment?> GetByIdAsync(int id)
+        {
+            using var conn = DbContext.CreateConnection();
+            using var cmd = new SqlCommand("SELECT * FROM dbo.Appointments WHERE AppointmentID = @Id", conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return Map(reader);
+            }
+            return null;
         }
 
         private Appointment Map(SqlDataReader reader)

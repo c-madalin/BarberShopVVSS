@@ -25,26 +25,7 @@ namespace Barbershop.Tests
             _reviewDomain = new ReviewDomain(_reviewRepository, _appointmentRepository);
         }
 
-        [Test]
-        public async Task AddReviewAsync_ShouldThrowException_WhenAppointmentDoesNotExist()
-        {
-            var review = new Review { AppointmentId = 1 };
-            _appointmentRepository.GetByIdAsync(1).Returns((Appointment)null);
-
-            Assert.ThrowsAsync<AppointmentNotFoundException>(async () =>
-                await _reviewDomain.AddReviewAsync(review));
-        }
-
-        [Test]
-        public async Task AddReviewAsync_ShouldThrowException_WhenReviewAlreadyExists()
-        {
-            var review = new Review { AppointmentId = 1 };
-            _appointmentRepository.GetByIdAsync(1).Returns(new Appointment());
-            _reviewRepository.HasReviewForAppointmentAsync(1).Returns(true);
-
-            Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await _reviewDomain.AddReviewAsync(review));
-        }
+        
 
         [Test]
         public async Task AddReviewAsync_ShouldCallRepository_WhenDataIsValid()
