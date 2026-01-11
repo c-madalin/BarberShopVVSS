@@ -1,50 +1,125 @@
-﻿using NUnit.Framework;
-using Moq;
-using System;
-using Barbershop.ServiceLayer;
-using Barbershop.DomainLayer;
+﻿using Barbershop.DomainLayer;
 using Barbershop.EntityLayer;
+using Barbershop.ServiceLayer;
+using NSubstitute;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Barbershop.Tests.ServiceLayer
+namespace Barbershop.Tests
 {
+    [TestFixture]
     public class AppointmentServiceTests
     {
-        private Mock<IAppointmentDomain> _mockDomain;
+        private IAppointmentDomain _domain;
         private AppointmentService _service;
 
         [SetUp]
         public void Setup()
         {
-            _mockDomain = new Mock<IAppointmentDomain>();
-            _service = new AppointmentService(_mockDomain.Object);
+            _domain = Substitute.For<IAppointmentDomain>();
+            _service = new AppointmentService(_domain);
         }
 
         [Test]
-        public void CreateAppointment_CallsDomainCreate()
+        public async Task CreateAppointmentAsync_ShouldMapFieldsAndCallDomain()
         {
-            _service.CreateAppointment("c@b.c", "b@b.c", DateTime.Now.AddDays(1), "Cut");
-            _mockDomain.Verify(d => d.Create(It.IsAny<Appointment>()), Times.Once);
+            string clientEmail = "client@test.com";
+            string barberEmail = "barber@test.com";
+            DateTime date = DateTime.Now.AddDays(2);
+            string serviceType = "Haircut";
+
+            await _service.CreateAppointmentAsync(clientEmail, barberEmail, date, serviceType);
+
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(x =>
+                x.CustomerEmail == clientEmail &&
+                x.BarberEmail == barberEmail &&
+                x.AppointmentDate == date &&
+                x.ServiceType == serviceType
+            ));
         }
 
         [Test]
-        public void GetHistoryClient_CallsDomain()
+        public async Task GetHistoryClientAsync_ShouldReturnListFromDomain()
         {
-            _service.GetHistoryClient("c@b.c");
-            _mockDomain.Verify(d => d.GetByCustomerEmail("c@b.c"), Times.Once);
+            string email = "client@test.com";
+            var expectedList = new List<Appointment> { new Appointment(), new Appointment() };
+            _domain.GetByCustomerEmailAsync(email).Returns(expectedList);
+
+            var result = await _service.GetHistoryClientAsync(email);
+
+            Assert.AreEqual(expectedList, result);
+            Assert.AreEqual(2, result.Count);
         }
 
         [Test]
-        public void GetHistoryBarber_CallsDomain()
+        public async Task GetHistoryBarberAsync_ShouldCallDomain()
         {
-            _service.GetHistoryBarber("b@b.c");
-            _mockDomain.Verify(d => d.GetByBarberEmail("b@b.c"), Times.Once);
+            string email = "b@test.com";
+            await _service.GetHistoryBarberAsync(email);
+            await _domain.Received(1).GetByBarberEmailAsync(email);
         }
 
         [Test]
-        public void Cancel_CallsDomain()
+        public async Task GetHistoryBarberAsync_ShouldReturnDomainData()
         {
-            _service.Cancel(1);
-            _mockDomain.Verify(d => d.Cancel(1), Times.Once);
+            string email = "b@test.com";
+            var expected = new List<Appointment> { new Appointment() };
+            _domain.GetByBarberEmailAsync(email).Returns(expected);
+
+            var result = await _service.GetHistoryBarberAsync(email);
+            Assert.AreSame(expected, result);
+        }
+
+        [Test]
+        public async Task CancelAsync_ShouldCallDomainWithCorrectId()
+        {
+            int id = 99;
+            await _service.CancelAsync(id);
+            await _domain.Received(1).CancelAsync(id);
+        }
+
+        [Test]
+        public async Task CreateAppointmentAsync_ShouldMapServiceTypeCorrectly()
+        {
+            string serviceType = "Fade";
+            await _service.CreateAppointmentAsync("c", "b", DateTime.Now, serviceType);
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(a => a.ServiceType == serviceType));
+        }
+
+        [Test]
+        public async Task CreateAppointmentAsync_ShouldMapCustomerEmailCorrectly()
+        {
+            string email = "custom@client.com";
+            await _service.CreateAppointmentAsync(email, "b", DateTime.Now, "s");
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(a => a.CustomerEmail == email));
+        }
+
+        [Test]
+        public async Task CreateAppointmentAsync_ShouldMapBarberEmailCorrectly()
+        {
+            string email = "custom@barber.com";
+            await _service.CreateAppointmentAsync("c", email, DateTime.Now, "s");
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(a => a.BarberEmail == email));
+        }
+
+        [Test]
+        public async Task CreateAppointmentAsync_ShouldMapDateCorrectly()
+        {
+            DateTime date = new DateTime(2025, 12, 25);
+            await _service.CreateAppointmentAsync("c", "b", date, "s");
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(a => a.AppointmentDate == date));
+        }
+
+        [Test]
+        public async Task GetHistoryClientAsync_ShouldReturnEmpty_WhenDomainEmpty()
+        {
+            _domain.GetByCustomerEmailAsync(Arg.Any<string>()).Returns(new List<Appointment>());
+            var result = await _service.GetHistoryClientAsync("any");
+
+            Assert.IsNotNull(result);
+            Assert.IsEmpty(result);
         }
     }
 }
