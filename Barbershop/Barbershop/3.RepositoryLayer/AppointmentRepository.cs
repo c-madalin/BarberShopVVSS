@@ -24,7 +24,9 @@ namespace Barbershop.RepositoryLayer
             cmd.Parameters.AddWithValue("@BarberEmail", appointment.BarberEmail);
             cmd.Parameters.AddWithValue("@Date", appointment.AppointmentDate);
             cmd.Parameters.AddWithValue("@Service", appointment.ServiceType);
-            cmd.Parameters.AddWithValue("@Status", appointment.Status.ToString());
+
+            
+            cmd.Parameters.AddWithValue("@Status", (int)appointment.Status);
 
             await conn.OpenAsync();
             var result = await cmd.ExecuteScalarAsync();
@@ -41,7 +43,7 @@ namespace Barbershop.RepositoryLayer
                 SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
                        b.FirstName + ' ' + b.LastName as BarberName
                 FROM dbo.Appointments a
-                JOIN dbo.Users b ON a.BarberEmail = b.Email
+                JOIN dbo.Barbers b ON a.BarberEmail = b.Email
                 WHERE a.CustomerEmail = @Email
                 ORDER BY a.AppointmentDate DESC";
 
@@ -67,7 +69,7 @@ namespace Barbershop.RepositoryLayer
                 SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
                        c.FirstName + ' ' + c.LastName as ClientName
                 FROM dbo.Appointments a
-                JOIN dbo.Users c ON a.CustomerEmail = c.Email
+                JOIN dbo.Clients c ON a.CustomerEmail = c.Email
                 WHERE a.BarberEmail = @Email
                 ORDER BY a.AppointmentDate DESC";
 
@@ -119,7 +121,8 @@ namespace Barbershop.RepositoryLayer
                 BarberEmail = reader["BarberEmail"].ToString(),
                 AppointmentDate = (DateTime)reader["AppointmentDate"],
                 ServiceType = reader["ServiceType"].ToString(),
-                Status = Enum.Parse<AppointmentStatus>(reader["Status"].ToString())
+            
+                Status = (AppointmentStatus)Convert.ToInt32(reader["Status"])
             };
 
             try { appt.BarberName = reader["BarberName"].ToString(); } catch { }
