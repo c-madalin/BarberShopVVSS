@@ -22,6 +22,7 @@ namespace Barbershop.Tests
             _service = new AppointmentService(_domain);
         }
 
+
         [Test]
         public async Task CreateAppointmentAsync_ShouldMapFieldsAndCallDomain()
         {
@@ -120,6 +121,62 @@ namespace Barbershop.Tests
 
             Assert.IsNotNull(result);
             Assert.IsEmpty(result);
+        }
+
+
+        [Test]
+        public void CreateAppointmentAsync_ShouldPropagateException_WhenDomainThrows()
+        {
+
+            _domain.When(x => x.CreateAsync(Arg.Any<Appointment>()))
+                   .Do(x => { throw new InvalidOperationException("Domain Error"); });
+
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _service.CreateAppointmentAsync("c", "b", DateTime.Now, "s"));
+
+            Assert.AreEqual("Domain Error", ex.Message);
+        }
+
+        [Test]
+        public async Task GetHistoryClientAsync_ShouldCallDomainWithCorrectEmail()
+        {
+
+            string specificEmail = "unique@client.com";
+            await _service.GetHistoryClientAsync(specificEmail);
+
+            await _domain.Received(1).GetByCustomerEmailAsync(specificEmail);
+        }
+
+        [Test]
+        public void CancelAsync_ShouldPropagateException_WhenDeletionFails()
+        {
+
+            int id = 500;
+            _domain.When(x => x.CancelAsync(id))
+                   .Do(x => { throw new ArgumentException("ID not found"); });
+
+            Assert.ThrowsAsync<ArgumentException>(async () => await _service.CancelAsync(id));
+        }
+
+        [Test]
+        public async Task CreateAppointmentAsync_ShouldPassNullServiceType_IfProvided()
+        {
+
+            string nullService = null;
+            await _service.CreateAppointmentAsync("c", "b", DateTime.Now, nullService);
+
+            await _domain.Received(1).CreateAsync(Arg.Is<Appointment>(a => a.ServiceType == null));
+        }
+
+        [Test]
+        public async Task GetHistoryBarberAsync_ShouldReturnNull_WhenDomainReturnsNull()
+        {
+
+            _domain.GetByBarberEmailAsync(Arg.Any<string>()).Returns((List<Appointment>)null);
+
+            var result = await _service.GetHistoryBarberAsync("barber@test.com");
+
+            Assert.IsNull(result);
         }
     }
 }
