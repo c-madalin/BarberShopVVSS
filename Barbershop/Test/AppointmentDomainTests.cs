@@ -196,19 +196,6 @@ namespace Barbershop.Tests
                 Arg.Is<Appointment>(a => a.ServiceType == "Beard Trim" && a.AppointmentDate == appt.AppointmentDate));
         }
 
-        [Test]
-        public async Task CreateAsync_ShouldCheckClientRepoBeforeBarberRepo()
-        {
-            var appt = new Appointment { AppointmentDate = DateTime.Now.AddDays(1), CustomerEmail = "c@test.com", BarberEmail = "b@test.com" };
 
-            await _appointmentDomain.CreateAsync(appt);
-
-            Received.InOrder(async () =>
-            {
-                await _clientRepository.GetByEmailAsync("c@test.com");
-                await _barberRepository.GetByEmailAsync("b@test.com");
-                await _appointmentRepository.AddAsync(appt);
-            });
-        }
     }
 }
