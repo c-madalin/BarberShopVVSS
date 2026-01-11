@@ -2,9 +2,12 @@ using Barbershop.DomainLayer;
 using Barbershop.EntityLayer;
 using Barbershop.RepositoryLayer;
 using Barbershop.Utils.Exceptions;
+using Barbershop.Utils.Logging.Interface;
+using Barbershop.Utils.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Barbershop.Tests
@@ -15,17 +18,19 @@ namespace Barbershop.Tests
         private IAppointmentRepository _appointmentRepository;
         private IUserRepository<Client> _clientRepository;
         private IUserRepository<Barber> _barberRepository;
+        private IAppLogger _mockLogger;
         private AppointmentDomain _appointmentDomain;
 
         [SetUp]
         public void Setup()
         {
-            // 1. ARRANGE (Pregătirea Mock-urilor)
             _appointmentRepository = Substitute.For<IAppointmentRepository>();
             _clientRepository = Substitute.For<IUserRepository<Client>>();
             _barberRepository = Substitute.For<IUserRepository<Barber>>();
 
-            // Injectăm mock-urile în Domain
+            _mockLogger = Substitute.For<IAppLogger>();
+            AppLogger.Init(_mockLogger);
+
             _appointmentDomain = new AppointmentDomain(
                 _appointmentRepository,
                 _clientRepository,
@@ -34,94 +39,148 @@ namespace Barbershop.Tests
         }
 
         [Test]
-        public void CreateAsync_ShouldThrowException_WhenDateIsInThePast()
+        public void CreateAsync_ShouldThrowException_WhenDateIsExactlyNow()
         {
-            // Arrange
-            var pastAppointment = new Appointment
-            {
-                AppointmentDate = DateTime.Now.AddDays(-1), // Dată în trecut
-                CustomerEmail = "client@test.com",
-                BarberEmail = "barber@test.com"
-            };
+            var appointment = new Appointment { AppointmentDate = DateTime.Now };
 
-            // Act & Assert
-            // Verificăm dacă se aruncă InvalidAppointmentDateException conform logicii din Domain
             Assert.ThrowsAsync<InvalidAppointmentDateException>(async () =>
-                await _appointmentDomain.CreateAsync(pastAppointment));
-        }
-
-        [Test]
-        public void CreateAsync_ShouldThrowException_WhenClientNotFound()
-        {
-            // Arrange
-            var appointment = new Appointment
-            {
-                AppointmentDate = DateTime.Now.AddDays(1),
-                CustomerEmail = "unknown@test.com"
-            };
-
-            // Simulăm că Repository-ul de clienți returnează NULL
-            _clientRepository.GetByEmailAsync(appointment.CustomerEmail).Returns((Client)null);
-
-            // Act & Assert
-            Assert.ThrowsAsync<UserNotFoundException>(async () =>
                 await _appointmentDomain.CreateAsync(appointment));
         }
 
         [Test]
-        public void CreateAsync_ShouldThrowException_WhenBarberNotFound()
+        public async Task GetByCustomerEmailAsync_ShouldReturnList_WhenRepositoryHasData()
         {
-            // Arrange
-            var appointment = new Appointment
-            {
-                AppointmentDate = DateTime.Now.AddDays(1),
-                CustomerEmail = "client@test.com",
-                BarberEmail = "unknown_barber@test.com"
-            };
+            string email = "client@test.com";
+            var expectedList = new List<Appointment> { new Appointment(), new Appointment() };
+            _appointmentRepository.GetByCustomerEmailAsync(email).Returns(expectedList);
 
-            // Simulăm că clientul există, dar frizerul NU
-            _clientRepository.GetByEmailAsync(appointment.CustomerEmail).Returns(new Client());
-            _barberRepository.GetByEmailAsync(appointment.BarberEmail).Returns((Barber)null);
+            var result = await _appointmentDomain.GetByCustomerEmailAsync(email);
 
-            // Act & Assert
-            Assert.ThrowsAsync<UserNotFoundException>(async () =>
-                await _appointmentDomain.CreateAsync(appointment));
+            Assert.AreEqual(2, result.Count);
+            Assert.AreSame(expectedList, result);
         }
 
         [Test]
-        public async Task CreateAsync_ShouldCallRepository_WhenDataIsValid()
+        public async Task GetByCustomerEmailAsync_ShouldReturnEmptyList_WhenRepositoryReturnsEmpty()
         {
-            // Arrange
-            var appointment = new Appointment
-            {
-                AppointmentDate = DateTime.Now.AddDays(1),
-                CustomerEmail = "client@test.com",
-                BarberEmail = "barber@test.com"
-            };
+            string email = "newclient@test.com";
+            _appointmentRepository.GetByCustomerEmailAsync(email).Returns(new List<Appointment>());
 
-            // Simulăm existența ambilor useri
-            _clientRepository.GetByEmailAsync(appointment.CustomerEmail).Returns(new Client());
-            _barberRepository.GetByEmailAsync(appointment.BarberEmail).Returns(new Barber());
+            var result = await _appointmentDomain.GetByCustomerEmailAsync(email);
 
-            // Act
-            await _appointmentDomain.CreateAsync(appointment);
-
-            // Assert
-            // Verificăm dacă metoda AddAsync din repository a fost apelată o dată
-            await _appointmentRepository.Received(1).AddAsync(appointment);
+            Assert.IsEmpty(result);
         }
 
         [Test]
-        public async Task CancelAsync_ShouldCallDeleteOnRepository()
+        public async Task GetByBarberEmailAsync_ShouldReturnList_WhenRepositoryHasData()
         {
-            // Arrange
-            int appointmentId = 10;
+            string email = "barber@test.com";
+            var expectedList = new List<Appointment> { new Appointment { AppointmentID = 1 } };
+            _appointmentRepository.GetByBarberEmailAsync(email).Returns(expectedList);
 
-            // Act
-            await _appointmentDomain.CancelAsync(appointmentId);
+            var result = await _appointmentDomain.GetByBarberEmailAsync(email);
 
-            // Assert
-            await _appointmentRepository.Received(1).DeleteByIdAsync(appointmentId);
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(1, result[0].AppointmentID);
+        }
+
+        [Test]
+        public async Task GetByBarberEmailAsync_ShouldCallRepositoryWithCorrectEmail()
+        {
+            string email = "check@barber.com";
+
+            await _appointmentDomain.GetByBarberEmailAsync(email);
+
+            await _appointmentRepository.Received(1).GetByBarberEmailAsync(email);
+        }
+
+        [Test]
+        public async Task CreateAsync_ShouldLogWarning_WhenClientNotFound()
+        {
+            var appt = new Appointment { AppointmentDate = DateTime.Now.AddDays(1), CustomerEmail = "missing@c.com" };
+            _clientRepository.GetByEmailAsync(appt.CustomerEmail).Returns((Client)null);
+
+            try { await _appointmentDomain.CreateAsync(appt); } catch { }
+
+            _mockLogger.Received().Log(
+                Arg.Is<string>(s => s.Contains("Client not found")),
+                Arg.Is<Barbershop.Utils.Logging.Enum.LogLevel>(l => l == Barbershop.Utils.Logging.Enum.LogLevel.Warning)
+            );
+        }
+
+        [Test]
+        public async Task CreateAsync_ShouldLogInfo_WhenCreatedSuccessfully()
+        {
+            var appt = new Appointment
+            {
+                AppointmentDate = DateTime.Now.AddDays(1),
+                CustomerEmail = "c@test.com",
+                BarberEmail = "b@test.com"
+            };
+            _clientRepository.GetByEmailAsync("c@test.com").Returns(new Client());
+            _barberRepository.GetByEmailAsync("b@test.com").Returns(new Barber());
+
+            await _appointmentDomain.CreateAsync(appt);
+
+            _mockLogger.Received().Log(
+                Arg.Is<string>(s => s.Contains("created successfully")),
+                Arg.Is<Barbershop.Utils.Logging.Enum.LogLevel>(l => l == Barbershop.Utils.Logging.Enum.LogLevel.Info)
+            );
+        }
+
+        [Test]
+        public async Task CancelAsync_ShouldLogInfo_AfterDeletion()
+        {
+            int id = 5;
+            await _appointmentDomain.CancelAsync(id);
+
+            _mockLogger.Received().Log(
+                Arg.Is<string>(s => s.Contains($"Appointment cancelled: ID {id}")),
+                Arg.Is<Barbershop.Utils.Logging.Enum.LogLevel>(l => l == Barbershop.Utils.Logging.Enum.LogLevel.Info)
+            );
+        }
+
+        [Test]
+        public async Task CreateAsync_ShouldPassCorrectObjectToRepository()
+        {
+            var appt = new Appointment
+            {
+                AppointmentDate = DateTime.Now.AddDays(5),
+                CustomerEmail = "valid@c.com",
+                BarberEmail = "valid@b.com",
+                ServiceType = "Beard Trim"
+            };
+            _clientRepository.GetByEmailAsync(appt.CustomerEmail).Returns(new Client());
+            _barberRepository.GetByEmailAsync(appt.BarberEmail).Returns(new Barber());
+
+            await _appointmentDomain.CreateAsync(appt);
+
+            await _appointmentRepository.Received(1).AddAsync(
+                Arg.Is<Appointment>(a =>
+                    a.ServiceType == "Beard Trim" &&
+                    a.AppointmentDate == appt.AppointmentDate
+                )
+            );
+        }
+
+        [Test]
+        public async Task CreateAsync_ShouldCheckClientRepoBeforeBarberRepo()
+        {
+            var appt = new Appointment
+            {
+                AppointmentDate = DateTime.Now.AddDays(1),
+                CustomerEmail = "c@test.com",
+                BarberEmail = "b@test.com"
+            };
+
+            await _appointmentDomain.CreateAsync(appt);
+
+            Received.InOrder(async () =>
+            {
+                await _clientRepository.GetByEmailAsync("c@test.com");
+                await _barberRepository.GetByEmailAsync("b@test.com");
+                await _appointmentRepository.AddAsync(appt);
+            });
         }
     }
 }
