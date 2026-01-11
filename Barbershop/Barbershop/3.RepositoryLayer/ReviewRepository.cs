@@ -11,9 +11,7 @@ namespace Barbershop.RepositoryLayer
     {
         public async Task AddAsync(Review review)
         {
-            // CORECTIE
             using var conn = DbContext.CreateConnection();
-            // await conn.OpenAsync();
 
             using var cmd = new SqlCommand(@"
                 INSERT INTO dbo.Reviews (AppointmentId, ClientEmail, BarberEmail, Rating, Comment, DatePosted)
@@ -33,7 +31,6 @@ namespace Barbershop.RepositoryLayer
         {
             var list = new List<Review>();
 
-            // CORECTIE
             using var conn = DbContext.CreateConnection();
 
             string sql = @"
@@ -55,7 +52,6 @@ namespace Barbershop.RepositoryLayer
 
         public async Task<bool> HasReviewForAppointmentAsync(int appointmentId)
         {
-            // CORECTIE
             using var conn = DbContext.CreateConnection();
 
             using var cmd = new SqlCommand("SELECT COUNT(1) FROM dbo.Reviews WHERE AppointmentId = @AppId", conn);

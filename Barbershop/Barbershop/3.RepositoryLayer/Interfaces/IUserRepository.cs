@@ -10,7 +10,7 @@ namespace Barbershop.RepositoryLayer
     {
         public Task AddAsync(T user);
         public Task<T?> GetByEmailAsync(string email);
-        public Task UpdateStatusAsync(string email, bool isActive); // SOFT DELETE
-        public Task DeleteAsync(string email); // HARD DELETE
+        public Task UpdateStatusAsync(string email, bool isActive);
+        public Task DeleteAsync(string email); 
     }
 }
