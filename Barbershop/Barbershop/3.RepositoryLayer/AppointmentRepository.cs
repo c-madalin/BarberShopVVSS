@@ -13,8 +13,8 @@ namespace Barbershop.RepositoryLayer
     {
         public async Task AddAsync(Appointment appointment)
         {
-            using var conn = DbContext.GetConnection();
-       
+            using var conn = DbContext.CreateConnection();
+
 
             using var cmd = new SqlCommand(@"
                 INSERT INTO dbo.Appointments (CustomerEmail, BarberEmail, AppointmentDate, ServiceType, Status)
@@ -34,7 +34,8 @@ namespace Barbershop.RepositoryLayer
         public async Task<List<Appointment>> GetByCustomerEmailAsync(string customerEmail)
         {
             var list = new List<Appointment>();
-            using var conn = DbContext.GetConnection();
+
+            using var conn = DbContext.CreateConnection();
 
             string sql = @"
                 SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
@@ -58,7 +59,8 @@ namespace Barbershop.RepositoryLayer
         public async Task<List<Appointment>> GetByBarberEmailAsync(string barberEmail)
         {
             var list = new List<Appointment>();
-            using var conn = DbContext.GetConnection();
+
+            using var conn = DbContext.CreateConnection();
 
             string sql = @"
                 SELECT a.AppointmentID, a.AppointmentDate, a.ServiceType, a.Status, a.BarberEmail, a.CustomerEmail,
@@ -81,7 +83,9 @@ namespace Barbershop.RepositoryLayer
 
         public async Task DeleteByIdAsync(int id)
         {
-            using var conn = DbContext.GetConnection();
+             
+            using var conn = DbContext.CreateConnection();
+
             using var cmd = new SqlCommand("DELETE FROM dbo.Appointments WHERE AppointmentID = @Id", conn);
             cmd.Parameters.AddWithValue("@Id", id);
             await cmd.ExecuteNonQueryAsync();
