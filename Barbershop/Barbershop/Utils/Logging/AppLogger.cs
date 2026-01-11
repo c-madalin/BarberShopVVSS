@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Logging
 {
-    internal static class AppLogger
+    public static class AppLogger
     {
         private static IAppLogger? _instance;
         public static IAppLogger Init(IAppLogger logger) => _instance = logger;

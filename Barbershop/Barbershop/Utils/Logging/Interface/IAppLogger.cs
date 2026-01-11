@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Barbershop.Utils.Logging.Interface
 {
-    internal interface IAppLogger
+    public interface IAppLogger
     {
         void Log(string message, LogLevel level);
     }
